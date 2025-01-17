@@ -7,6 +7,7 @@ using ClosedXML.Excel; // ClosedXML için
 using iText.Kernel.Pdf; // iText7 için
 using iText.Layout; // iText7 için
 using iText.Layout.Element; // iText7 için
+using iText.Layout.Properties;
 using Org.BouncyCastle.Security; // BouncyCastle için
 
 namespace Matrix
@@ -96,27 +97,38 @@ namespace Matrix
             {
                 string filePath = saveFileDialog.FileName;
 
-
                 using (var writer = new PdfWriter(filePath))
                 {
                     var pdf = new PdfDocument(writer);
                     var document = new Document(pdf);
 
-                    // Tablo oluþtur
-                    var table = new Table(dataTable.Columns.Count);
+                    // Yazý boyutunu küçült
+                    var fontSize = 4f;
+
+                    // Ýçeriðe göre sütun geniþliklerini hesapla
+                    float[] columnWidths = Enumerable.Repeat(1f, dataTable.Columns.Count).ToArray();
+
+                    // Tabloyu tüm geniþliðe yayýyoruz
+                    var table = new Table(UnitValue.CreatePercentArray(columnWidths)).UseAllAvailableWidth();
 
                     // Sütun baþlýklarýný ekle
                     foreach (DataColumn column in dataTable.Columns)
                     {
-                        table.AddHeaderCell(new Cell().Add(new Paragraph(column.ColumnName)));
+                        table.AddHeaderCell(new Cell()
+                            .Add(new Paragraph(column.ColumnName)
+                            .SetFontSize(fontSize))
+                            .SetTextAlignment(TextAlignment.CENTER));
                     }
 
-                    // Satýrlarý ve hücreleri ekle
+                    // Tüm satýrlarý ve hücreleri ekle
                     foreach (DataRow row in dataTable.Rows)
                     {
                         foreach (var cell in row.ItemArray)
                         {
-                            table.AddCell(new Cell().Add(new Paragraph(cell?.ToString() ?? "")));
+                            table.AddCell(new Cell()
+                                .Add(new Paragraph(cell?.ToString() ?? "")
+                                .SetFontSize(fontSize))
+                                .SetTextAlignment(TextAlignment.LEFT));
                         }
                     }
 
@@ -128,6 +140,8 @@ namespace Matrix
                 MessageBox.Show("PDF dosyasý baþarýyla kaydedildi!", "Baþarýlý", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
+
+
 
 
         private void exportExcel_Click(object sender, EventArgs e)
